@@ -34,6 +34,7 @@ app.use('/api/users', userRoutes)
 app.use('/api/stock', stockRoutes)
 app.use('/api/contact', contactRoutes)
 
+app.get('/', (req, res) => res.json({ message: 'Barkat Mart API running' }))
 app.get('/api', (req, res) => res.json({ message: 'Barkat Mart API running' }))
 
 export default async function handler(req, res) {
