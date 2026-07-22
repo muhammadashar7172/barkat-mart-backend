@@ -1,15 +1,8 @@
 import { Router } from 'express'
-import multer from 'multer'
 import Product from '../models/Product.js'
 import { auth, adminOnly } from '../middleware/auth.js'
 
 const router = Router()
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '-'))
-})
-const upload = multer({ storage })
 
 router.get('/', async (req, res) => {
   try {
@@ -34,23 +27,23 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.post('/', auth, adminOnly, upload.array('images', 5), async (req, res) => {
+router.post('/', auth, adminOnly, async (req, res) => {
   try {
-    const { name, price, unit, stock, category, description } = req.body
-    const images = req.files?.map(f => `/uploads/${f.filename}`) || []
-    const product = await Product.create({ name, price: Number(price), unit, stock: Number(stock) || 0, category, description, images })
+    const { name, price, unit, stock, category, description, images } = req.body
+    const productImages = images || []
+    const product = await Product.create({ name, price: Number(price), unit, stock: Number(stock) || 0, category, description, images: productImages })
     res.status(201).json(product)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 })
 
-router.put('/:id', auth, adminOnly, upload.array('images', 5), async (req, res) => {
+router.put('/:id', auth, adminOnly, async (req, res) => {
   try {
-    const { name, price, unit, stock, category, description } = req.body
+    const { name, price, unit, stock, category, description, images } = req.body
     const update = { name, price: Number(price), unit, stock: Number(stock) || 0, category, description }
-    if (req.files?.length) {
-      update.images = req.files.map(f => `/uploads/${f.filename}`)
+    if (images?.length) {
+      update.images = images
     }
     const product = await Product.findByIdAndUpdate(req.params.id, update, { new: true })
     res.json(product)
