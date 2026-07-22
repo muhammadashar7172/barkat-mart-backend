@@ -6,9 +6,11 @@ if (!cached) cached = global.mongoose = { conn: null, promise: null }
 const connectDB = async () => {
   if (cached.conn) return cached.conn
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
+    const uri = process.env.MONGODB_URI
+    cached.promise = mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
+      tls: true,
     }).then(m => m)
   }
   cached.conn = await cached.promise
