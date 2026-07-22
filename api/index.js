@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import mongoose from 'mongoose'
@@ -13,7 +12,7 @@ import contactRoutes from '../routes/contact.js'
 let cached = global.mongoose
 if (!cached) cached = global.mongoose = { conn: null, promise: null }
 
-const connectDB = async () => {
+async function connectDB() {
   if (cached.conn) return cached.conn
   if (!cached.promise) {
     cached.promise = mongoose.connect(process.env.MONGODB_URI, {
@@ -26,7 +25,7 @@ const connectDB = async () => {
 }
 
 const app = express()
-app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE'] }))
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
@@ -38,9 +37,14 @@ app.use('/api/users', userRoutes)
 app.use('/api/stock', stockRoutes)
 app.use('/api/contact', contactRoutes)
 
-app.get('/', (req, res) => res.json({ message: 'Barkat Mart API running' }))
+app.get('/api', (req, res) => res.json({ message: 'Barkat Mart API running' }))
 
 export default async function handler(req, res) {
-  await connectDB()
-  return app(req, res)
+  try {
+    await connectDB()
+    return app(req, res)
+  } catch (err) {
+    console.error('Handler error:', err)
+    res.status(500).json({ error: 'Server error' })
+  }
 }
