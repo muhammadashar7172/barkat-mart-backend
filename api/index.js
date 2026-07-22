@@ -15,10 +15,7 @@ if (!cached) cached = global.mongoose = { conn: null, promise: null }
 async function connectDB() {
   if (cached.conn) return cached.conn
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
-    }).then(m => m)
+    cached.promise = mongoose.connect(process.env.MONGODB_URI).then(m => m)
   }
   cached.conn = await cached.promise
   return cached.conn
@@ -44,7 +41,6 @@ export default async function handler(req, res) {
     await connectDB()
     return app(req, res)
   } catch (err) {
-    console.error('Handler error:', err)
-    res.status(500).json({ error: 'Server error' })
+    return res.status(500).json({ error: err.message || 'Server error' })
   }
 }
